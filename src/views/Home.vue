@@ -1,19 +1,34 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-    <i class="iconfont icon-hanbao"></i>
+      <left-nav></left-nav>
+      <div class="main">
+        <router-view></router-view>
+      </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import leftNav from "@/components/common/LeftNav.vue";
 
 export default {
   name: "home",
   components: {
-    HelloWorld
+    leftNav
   }
 };
 </script>
+<style lang="scss">
+.home{
+  width: 100%;
+  height: 100%;
+  background-color: #e9eef3;
+  .main{
+    width: 100%;
+    height: 100%;
+    padding-left: 60px;
+    box-sizing: border-box;
+  }
+}
+</style>
+
