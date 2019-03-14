@@ -13,6 +13,7 @@ export default new Router({
       path: "/",
       name: "home",
       component: Home,
+      redirect:'/checkout',
       children:[{
         path: "/checkout",
         name: "checkout",
