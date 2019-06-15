@@ -13,11 +13,30 @@
                             </el-table-column>
                             <el-table-column label="操作" width="100" fixed="right">
                                 <template slot-scope="scope">
-                                    <el-button type="text" size="small" @click="deleteBtn(scope.row.id)">删除</el-button>
-                                    <el-button type="text" size="small" @click="addBtn(scope.row.id)">增加</el-button>
+                                    <el-button type="text" size="small" @click="deleteBtn(scope.row.goodsId)">删除
+                                    </el-button>
+                                    <el-button type="text" size="small" @click="addBtn(scope.row.goodsId)">增加
+                                    </el-button>
                                 </template>
                             </el-table-column>
                         </el-table>
+                        <div class="sum">
+                            <ul>
+                                <li>
+                                    <span>数量：</span>
+                                    <span>{{productSum}}</span>
+                                </li>
+                                <li>
+                                    <span>总额：</span>
+                                    <span>{{priceSum}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="btn">
+                            <el-button type="warning">挂单</el-button>
+                            <el-button @click="delAll" type="danger">删除</el-button>
+                            <el-button type="primary">结账</el-button>
+                        </div>
                     </el-tab-pane>
                     <el-tab-pane label="挂单">挂单</el-tab-pane>
                     <el-tab-pane label="外卖">外卖</el-tab-pane>
@@ -28,7 +47,7 @@
                     <div class="title">常用商品</div>
                     <div class="often-goods-list">
                         <ul>
-                            <li v-for="(item,index) in oftenGoods" :key="index">
+                            <li v-for="(item,index) in oftenGoods" :key="index" @click="oftenGoodsClick(item)">
                                 <span>{{item.goodsName}}</span>
                                 <span class="o-price">{{item.price}}</span>
                             </li>
@@ -39,13 +58,12 @@
                     <el-tabs>
                         <el-tab-pane label="汉堡">
                             <ul class='cookList'>
-                                <li v-for="(goods,index) in type0Goods" :key="index">
+                                <li v-for="(goods,index) in type0Goods" :key="index" @click="oftenGoodsClick(goods)">
                                     <span class="foodImg"><img :src="goods.goodsImg" width="100%"></span>
                                     <span class="foodName">{{goods.goodsName}}</span>
                                     <span class="foodPrice">￥{{goods.price}}元</span>
                                 </li>
                             </ul>
-
                         </el-tab-pane>
                         <el-tab-pane label="小食">
                             小食
@@ -66,27 +84,7 @@
     export default {
         data() {
             return {
-                tableData: [{
-                    goodsName: '可口可乐',
-                    price: 8,
-                    count: 1,
-                    id: 1
-                }, {
-                    goodsName: '香辣鸡腿堡',
-                    price: 15,
-                    count: 1,
-                    id: 2
-                }, {
-                    goodsName: '爱心薯条',
-                    price: 8,
-                    count: 1,
-                    id: 3
-                }, {
-                    goodsName: '甜筒',
-                    price: 8,
-                    count: 1,
-                    id: 4
-                }],
+                tableData: [],
                 oftenGoods: [{
                     goodsId: 1,
                     goodsName: '香辣鸡腿堡',
@@ -179,6 +177,8 @@
                     goodsName: '香脆鸡柳',
                     price: 17
                 }],
+                productSum: 0,
+                priceSum: 0
             }
         },
         mounted() {
@@ -186,11 +186,56 @@
             document.getElementById('order-list').style.height = bodyHeight + 'px'
         },
         methods: {
-            deleteBtn() {
-
+            deleteBtn(id) {
+                this.tableData = this.tableData.filter(o => o.goodsId != id);
+                this.getSum()
             },
-            addBtn() {
+            addBtn(id) {
+                let arr = this.tableData.filter(o => o.goodsId == id);
+                arr[0].count++;
 
+                this.getSum()
+            },
+            delAll(){
+                this.tableData = []
+                this.getSum()
+            },
+            //常用商品店家
+            oftenGoodsClick(goods) {
+                let isHave = false;
+
+                this.tableData.forEach((item, i) => {
+                    if (item.goodsId == goods.goodsId) {
+                        isHave = true
+                    }
+                })
+                if (isHave) {
+                    let arr = this.tableData.filter(o => o.goodsId == goods.goodsId);
+                    arr[0].count++;
+                    // this.tableData[index].count ++
+                    // this.tableData[index].price = this.tableData[index].price * this.tableData[index].count
+                    // this.tableData.splice(index,1,this.tableData[index]) //此处注意改变数组对象中的参数值，vue不渲染。此处用数组替换解决(此处还有给坑，用goods的对象不行。用新的就行)
+                } else {
+                    let newGoods = {
+                        goodsId: goods.goodsId,
+                        goodsName: goods.goodsName,
+                        price: goods.price,
+                        count: 1
+                    }; //此处不要用goods对象，那样会影响oftenGoods中参数且回影响渲染
+                    this.tableData.push(newGoods)
+                }
+
+
+                this.getSum()
+            },
+
+            getSum() {
+                this.productSum = 0;
+                this.priceSum = 0;
+                this.tableData.forEach(item => {
+                    this.productSum += item.count
+                    this.priceSum += item.count * item.price
+                })
             }
         }
     }
@@ -207,13 +252,21 @@
         padding: 10px;
     }
 
+    .often-goods-list ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
     .often-goods-list ul li {
+        width: 20%;
         list-style: none;
-        float: left;
-        border: 1px solid #E5E9F2;
+        // float: left;
+        border: 10px solid #E5E9F2;
         padding: 10px;
-        margin: 5px;
+        // margin: 5px;
         background-color: #fff;
+        box-sizing: border-box;
+        cursor: pointer;
     }
 
     .goods-type {
@@ -234,6 +287,7 @@
         padding: 2px;
         float: left;
         margin: 2px;
+        cursor: pointer;
     }
 
     .cookList li span {
@@ -255,5 +309,23 @@
         font-size: 16px;
         padding-left: 10px;
         padding-top: 10px;
+    }
+
+    .sum {
+        height: 50px;
+        line-height: 50px;
+        border-bottom: 1px solid #EBEEF5;
+        text-align: center;
+
+        li {
+            display: inline-block;
+            margin-right: 5px;
+            // float: left;
+        }
+    }
+
+    .btn {
+        text-align: center;
+        padding: 10px;
     }
 </style>
